@@ -1,5 +1,5 @@
 ## SIR model  - an Epidemic modelling
-**Question:** How will the results of two SIR models for Covid-19 infection dynamics differ if one additionally considers time dependence of vaccination protection?  <br>
+Question:How will the results of two SIR models for Covid-19 infection dynamics differ if one additionally considers time dependence of vaccination protection?  <br>
 **Hypothesis:** The model considering the time dependent vaccination protection will be more accurate.  <br>
 ---
 #### Basic model: SIR (a simple epidemics model)
