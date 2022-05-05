@@ -1,11 +1,14 @@
 ## SIR  - an Epidemic Model
-**Question**:How will the results of two SIR models for Covid-19 infection dynamics differ if one additionally considers time dependence of vaccination protection?  <br>
-**Hypothesis:** The model considering the time dependent vaccination protection will be more accurate.  <br>
+### Question:
+How will the results of two SIR models for Covid-19 infection dynamics differ if one additionally considers time dependence of vaccination protection? <br>
+### Hypothesis:
+The model considering the time dependent vaccination protection will be more accurate. <br>
+
 ---
 #### Basic model: SIR (a simple epidemics model)
 * N = S + I + R (the total number of individuals is constant)
 * Individuals only jump between the 3 compartments. 
-* Solver for system of ODEs - RK4 is very stable and accurat
+* Solver for system of ODEs - RK4 is very stable and accurate
 ---
 #### Assumptions: 
 * Model A considers 5 months of constant vaccination protection / natural immunity	
