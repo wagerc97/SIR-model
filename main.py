@@ -10,33 +10,86 @@ Author: Clemens Wager, BSc
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import scipy.integrate
 
 
-# 4th-Order Runge-Kutta Method
-# https://www.youtube.com/watch?v=6tUPGWDJghI -> Example on computer #TODO do on Friday
-def RK4solver(params):
+# https://www.youtube.com/watch?v=6tUPGWDJghI -> Example on computer
+def Rk4SolverForOneOde(f, t_0, h, val_0):
+    """
+    4th-Order Runge-Kutta Method
+    :param f: ODE
+    :param t_0: old time
+    :param h: time step
+    :param val_0: old function value
+    :return:
+        t_1: updated time
+        val_1: updated function value
+    """
+    # Intermediate steps
+    # K_1 = f(t_i, S_i)
+    K_1 = f(t_0, val_0)
+    # K_2 = f(t_i + h/2, S_i + 1/2 * K_1 * h)
+    K_2 = f(t_0 + h/2, val_0 + 0.5 * K_1 * h)
+    # K_3 = f(t_i + h/2, S_i + 1/2 * K_2 * h)
+    K_3 = f(t_0 + h/2, val_0 + 0.5 * K_2 * h)
+    # K_4 = f(t_i + h, S_i + K_3 * h)
+    K_4 = f(t_0 + h, val_0 + K_3 * h)
+
+    # Update function value
+    # S_i+1 = S_i + h/6 * (K_1 + 2*k_2 + 3*K_3 + 4*K_4)
+    val_1 = val_0 + h/6 * (K_1 + 2*K_2 + 2*K_3 + K_4)
+
     # Time Update
     # t_i+1 = t_i + h
+    t_1 = t_0 + h
+
+    return t_1, val_1
+
+# https://www.youtube.com/watch?v=qTUhLrwpiDs
+def Rk4SolverForThreeOdes(f, t_0, h, val_0):
+    """
+    4th-Order Runge-Kutta Method
+    :param f: ODE
+    :param t_0: old time
+    :param h: time step
+    :param val_0: old function value
+    :return:
+        t_1: updated time
+        val_1: updated function value
+    """
+    # solve with scipy.odeint: https://www.youtube.com/watch?v=wEvZmBXgxO0
 
     # Intermediate steps
     # K_1 = f(t_i, S_i)
+    K_1 = f(t_0, val_0)
     # K_2 = f(t_i + h/2, S_i + 1/2 * K_1 * h)
+    K_2 = f(t_0 + h/2, val_0 + 0.5 * K_1 * h)
     # K_3 = f(t_i + h/2, S_i + 1/2 * K_2 * h)
+    K_3 = f(t_0 + h/2, val_0 + 0.5 * K_2 * h)
     # K_4 = f(t_i + h, S_i + K_3 * h)
+    K_4 = f(t_0 + h, val_0 + K_3 * h)
 
-    # Merge all steps
+    # Update function value
     # S_i+1 = S_i + h/6 * (K_1 + 2*k_2 + 3*K_3 + 4*K_4)
+    val_1 = val_0 + h/6 * (K_1 + 2*K_2 + 2*K_3 + K_4)
 
-    pass
+    # Time Update
+    # t_i+1 = t_i + h
+    t_1 = t_0 + h
+
+    return t_1, val_1
 
 
-# Initiate Calculation
-def initCalculation():
-    pass
+def initalCondition(S_0, I_0, R_0, t_0):
+    S_1 = S_0
+    I_1 = I_0
+    R_1 = R_0
+    t = t_0
+    return S_1, I_1, R_1, t
 
 
-# Plot the 3 phase lines for S, I and R
 def plotSIR(params):
+    # Plot the 3 phase lines for S, I and R
     pass
 
 
@@ -51,13 +104,17 @@ if __name__ == '__main__':
     a = 2.0  # infection rate
     b = 0.5  # recovery rate
     # Model A considers a constant decay in immunity over time
-    c_A = 0.1
+    #c_A = 0.1
+    c_A = lambda t: 0.1*t
     # Model B considers a sigmoid function for the decay in immunity over time
     c_B = lambda t: 1 / 1 + np.exp(-t)
     # Time
     t_0 = 0  # starting time
-    h = 0.5  # time step -> 1 day
-    duration = 150  # duration of simulation -> 5 months = 150 days
+    h = dt = 1  # time step -> 1 day
+    ndays = 150  # duration of simulation -> 5 months = 150 days
+
+    # Define system of coupled nonlinear ODEs
+
 
     print(f"N = {N}")
     print(f"S_0 = {S_0}")
