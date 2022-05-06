@@ -18,5 +18,5 @@ The model considering the time dependent vaccination protection will be more acc
   - S -> I (Susceptiles turn infected over time)
   - I -> R (Infected recover after 10 days and gain immunity)	Phase2: immunity duration? - 3 / 5 / 6 months 
   - R -> S (fallback after 5 months)
-  - Birth rate b = mortality m -> negligibly small
+  - Birth rate b = mortality m OR both are considered negligibly small
 ---

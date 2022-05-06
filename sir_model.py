@@ -31,7 +31,8 @@ def SIR_modelA(y, t, beta, gamma, epsilon):
 
     return [dS_dt, dI_dt, dR_dt]
 
-def SIR_modelB(y, t, beta, gamma, epsilon):
+# epsilon is a function of time
+def SIR_modelB1(y, t, beta, gamma, epsilon):
     """
     Computes the derivative of y at t.
     :param y: result
@@ -44,6 +45,22 @@ def SIR_modelB(y, t, beta, gamma, epsilon):
     dS_dt = -beta*S*I + epsilon(t)*R
     dI_dt = beta*S*I - gamma*I
     dR_dt = gamma*I - epsilon(t)*R
+
+    return [dS_dt, dI_dt, dR_dt]
+# epsilon is 1/150, so protection wares of after 5 months
+def SIR_modelB(y, t, beta, gamma, epsilon):
+    """
+    Computes the derivative of y at t.
+    :param y: result
+    :param t: time
+    :param beta: infection rate
+    :param gamma: recovery rate
+    :return:
+    """
+    S, I, R, = y
+    dS_dt = -beta*S*I + epsilon*R
+    dI_dt = beta*S*I - gamma*I
+    dR_dt = gamma*I - epsilon*R
 
     return [dS_dt, dI_dt, dR_dt]
 
@@ -81,34 +98,34 @@ if __name__ == '__main__':
     # Start the simulation with initial values
     print("=== Start calculation ===")
 
-    # Initial conditions
-    N = 9e6         # population size
-    acc = 4         # accuracy, number of decimal places in results
-    S_0 = 0.9       # fraction of Susceptible at t(0)
-    I_0 = 0.1       # fraction of Infected
-    R_0 = 0.0       # fraction of Recovered
-    beta = 0.35     # infection rate
-    gamma = 0.1     # recovery rate (10 days)
-
-    # Model A considers a constant decay in immunity over time
-    epsilonA = 0.01
-
-    # Model B considers the decay in immunity as a function over time
-    # epsilonB_sigmoid is a sigmoid function with a damper
-    # sigmoid is similar to a jump function
-    epsilonB_sigmoid = lambda t: (1 / (1 + np.exp(-t))) * 0.02
-    # epsilonB_sigmoid is a gaussian function with a damper
-    epsilonB_gauss = lambda t: None
-    # epsilonB_sigmoid is a poisson function with a damper
-    epsilonB_poisson = lambda t: None
-
-    epsilonB = epsilonB_sigmoid # choice for epsilonB
-
     # Time
     t_0 = 0  # starting time
     dt = 1  # time step -> 1 day
     ndays = 150  # duration of simulation -> 5 months = 150 days
     t = np.arange(start=t_0, stop=ndays, step=dt)
+
+    # Initial conditions
+    N = 9e6         # population size
+    acc = 3         # accuracy, number of decimal places in results
+    S_0 = 0.9       # fraction of Susceptible at t(0)
+    I_0 = 1353/N    # fraction of Infected
+    R_0 = 0.0       # fraction of Recovered
+    beta = 0.35     # infection rate
+        #k =  # contact rate
+        #q =  # probability of an infection
+        #D = 7 # duration of infectious state in days
+        #beta = k * q * D # infection rate
+    gamma = 10/ndays     # recovery rate (10 days)
+
+    # Model A considers a constant decay in immunity over time
+    epsilonA = 0.0
+
+    # Model B considers the decay in immunity as a function over time
+    # epsilonB_sigmoid is a sigmoid function with a damper
+    # sigmoid is similar to a jump function
+    epsilonB_sigmoid = lambda t: (1 / (1 + np.exp(-t))) * 0.02
+    # Maybe try constant, Gaussian, Poisson, ... decay rate
+    epsilonB = 1/150
 
     print(f"N = {int(N)}")
     print(f"S_0 = {S_0}")
@@ -117,7 +134,8 @@ if __name__ == '__main__':
     print(f"beta = {beta}")
     print(f"gamma = {gamma}")
     print(f"epsilonA = {epsilonA}")
-    print(f"epsilonB = {round(np.mean(epsilonB(t)), acc)}")
+    # print(f"epsilonB = {round(np.mean(epsilonB(t)), acc)}")
+    print(f"epsilonB = {round(epsilonB, acc)}")
     print(f"t_0 = {t_0}")
     print(f"timestep dt = {dt} day(s)")
     print(f"time = {ndays} days / {ndays/30} months")
@@ -140,13 +158,15 @@ if __name__ == '__main__':
     ).y.T)  # select transformed solution matrix
 
     # Scale results on Austrian population
-    if True:
+    scaled = False
+    if scaled:
         solutionA = solutionA*N
         solutionB = solutionB*N
         acc = 0
 
     # Stdout results
     print("\n---------------------------------------------")
+    print("Results scaled:", scaled)
     print("Zenith of  infected wave in Model A is at", round(max(solutionA[:, 1]), acc))
     print("Zenith of  infected wave in Model B is at", round(max(solutionB[:, 1]), acc))
     print("Plot is ready!")
