@@ -47,7 +47,6 @@ def SIR_modelB(y, t, beta, gamma, epsilon):
 
     return [dS_dt, dI_dt, dR_dt]
 
-
 def plotSIR(solution):
     # Plot the 3 phase lines for S, I and R
     plt.figure(figsize=[10, 8])
@@ -83,20 +82,21 @@ if __name__ == '__main__':
     print("=== Start calculation ===")
 
     # Initial conditions
-    N = 1e6         # population size
+    N = 9e6         # population size
+    acc = 4         # accuracy, number of decimal places in results
     S_0 = 0.9       # fraction of Susceptible at t(0)
     I_0 = 0.1       # fraction of Infected
     R_0 = 0.0       # fraction of Recovered
     beta = 0.35     # infection rate
-    gamma = 0.1     # recovery rate
+    gamma = 0.1     # recovery rate (10 days)
 
     # Model A considers a constant decay in immunity over time
-    epsilonA = 0.001
+    epsilonA = 0.01
 
     # Model B considers the decay in immunity as a function over time
     # epsilonB_sigmoid is a sigmoid function with a damper
-    # close to a jump function
-    epsilonB_sigmoid = lambda t: (1 / (1 + np.exp(-t))) * 0.01
+    # sigmoid is similar to a jump function
+    epsilonB_sigmoid = lambda t: (1 / (1 + np.exp(-t))) * 0.02
     # epsilonB_sigmoid is a gaussian function with a damper
     epsilonB_gauss = lambda t: None
     # epsilonB_sigmoid is a poisson function with a damper
@@ -117,16 +117,12 @@ if __name__ == '__main__':
     print(f"beta = {beta}")
     print(f"gamma = {gamma}")
     print(f"epsilonA = {epsilonA}")
-    print(f"epsilonB = {epsilonB}")
+    print(f"epsilonB = {round(np.mean(epsilonB(t)), acc)}")
     print(f"t_0 = {t_0}")
     print(f"timestep dt = {dt} day(s)")
     print(f"time = {ndays} days / {ndays/30} months")
 
-    # Calculate Model for given parameters
-    #solutionA = calculate(t, [t_0, ndays], [S_0, I_0, R_0], beta, gamma, epsilonA, SIR_modelA)
-    #solutionB = calculate(t, [t_0, ndays], [S_0, I_0, R_0], beta, gamma, epsilonB, SIR_modelB)
-
-    # Solve coupled system of ODEs.
+    # Solve coupled system of ODEs using RK4
     solutionA = np.array(solve_ivp(
         fun=lambda t, y: SIR_modelA(y, t, beta, gamma, epsilonA),  # system of ODEs
         y0=[S_0, I_0, R_0],     # initial condition
@@ -143,15 +139,21 @@ if __name__ == '__main__':
         method='RK45',          # default
     ).y.T)  # select transformed solution matrix
 
+    # Scale results on Austrian population
+    if True:
+        solutionA = solutionA*N
+        solutionB = solutionB*N
+        acc = 0
 
-    # Stdout Results
+    # Stdout results
     print("\n---------------------------------------------")
-    #print("The zenith of the infected wave is at", round(max(solutionA[:, 1]), 4))
+    print("Zenith of  infected wave in Model A is at", round(max(solutionA[:, 1]), acc))
+    print("Zenith of  infected wave in Model B is at", round(max(solutionB[:, 1]), acc))
     print("Plot is ready!")
 
     # Plot results
-    plotSIR(solutionB)
-    #subplotSIR(solutionA, solutionB)
+    #plotSIR(solutionB)
+    subplotSIR(solutionA, solutionB)
 
 
 
