@@ -6,9 +6,11 @@ Author: Clemens Wager, BSc
 """""""""""""""""""""""""""""""""""""""""""""""""""""
 # A Python script to compute SIR model of infection
 # dynamics of the Covid-19 pandemic in Austria
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
+import helpers
 
 
 def SIR_modelA(y, t, beta, gamma, epsilon):
@@ -41,22 +43,6 @@ def SIR_modelB(y, t, beta, gamma, epsilon):
     dS_dt = -beta*S*I + epsilon(t)*R
     dI_dt = beta*S*I - gamma*I
     dR_dt = gamma*I - epsilon(t)*R
-
-    return [dS_dt, dI_dt, dR_dt]
-# epsilon is 1/150, so protection wares of after 5 months
-def SIR_modelB1(y, t, beta, gamma, epsilon):
-    """
-    Computes the derivative of y at t.
-    :param y: result
-    :param t: time
-    :param beta: infection rate
-    :param gamma: recovery rate
-    :return:
-    """
-    S, I, R, = y
-    dS_dt = -beta*S*I + epsilon*R
-    dI_dt = beta*S*I - gamma*I
-    dR_dt = gamma*I - epsilon*R
 
     return [dS_dt, dI_dt, dR_dt]
 
@@ -104,6 +90,7 @@ if __name__ == '__main__':
     dt = 1  # time step -> 1 day
     ndays = 150  # duration of simulation -> 5 months = 150 days
     t = np.arange(start=t_0, stop=ndays, step=dt)
+    print(t)
 
     # Initial conditions
     N = 9e6         # population size
@@ -124,36 +111,21 @@ if __name__ == '__main__':
     ##### Model B considers the decay in immunity as a function over time #####
 
     ### sigmoid function with a damper (sigmoid is similar to a jump function)
-    epsilonB_sigmoid = lambda t: (1 / (1 + np.exp(-t))) * 0.02
+    epsilonB_sigmoid = lambda t: (1 / (1 + np.exp(-t)) ) * 0.02
 
     ### Constant rate of decay
-    epsilonB_constant = 1/ndays
+    epsilonB_constant = lambda t : 1/ndays
 
-    ### Gauss Function with a damper
-    #def epsilonB_gaussian(x_gauss, alpha_gauss, r_gauss):
-    def epsilonB_gaussian(x_halfNormal):
-        """
-        Return a list of normally distributed values. Depending on the input list of x-values only half-normal values.
-        :param x_halfNormal:
-        :return:
-        """
-        #return 1. / (np.sqrt(alpha_gauss ** np.pi)) * np.exp(-alpha_gauss * np.power((x_gauss - r_gauss), 2.))
-        gauss=lambda x_gauss, alpha_gauss, r_gauss: 1. / (np.sqrt(alpha_gauss ** np.pi)) * np.exp(-alpha_gauss * np.power((x_gauss - r_gauss), 2.))
-        gaussList = gauss(x_halfNormal, 1, 0)
-        #print(gaussList)
-        return gaussList
+    ### Half Normal Distributed values for decay rates
+    #x_halfNormalShow = np.linspace(-3, 0, ndays) # list to confirm half normal distribution
+    #plt.plot(x_halfNormalShow, [epsilonB_halfGauss(x) for x in range(ndays)]) # plot half normal distribution
+    #plt.grid(); plt.show(); # show plot
+    epsilonB_halfNorm = lambda t: helpers.epsB_GaussList(t)
 
-    x_halfNormal = np.linspace(-3, 0, ndays)
-    #x_gauss = np.linspace(-3, 3, 100)
-    #plt.plot(x_gauss, epsilonB_gaussian(x_gauss, 1, 0)); plt.grid(); plt.show()
-    plt.plot(x_halfNormal, epsilonB_gaussian(x_halfNormal)); plt.grid(); plt.show()
 
-    ### Half normal distribution
-
-    # Maybe try constant, Gaussian, Poisson, ... decay rate
     ######### CHOICE #########
-    epsilonB = epsilonB_gaussian
-    helperPlotEpsilonB(epsilonB_gaussian)
+    epsilonB = epsilonB_halfNorm
+    #helperPlotEpsilonB(epsilonBGaussian)
 
 
     print(f"N = {int(N)}")
@@ -163,8 +135,7 @@ if __name__ == '__main__':
     print(f"beta = {beta}")
     print(f"gamma = {gamma}")
     print(f"epsilonA = {epsilonA}")
-    print(f"epsilonB = {round(np.mean(epsilonB(t)), acc)}")
-    # print(f"epsilonB = {round(epsilonB, acc)}")
+    #print(f"epsilonB = {round(np.mean(epsilonB(t)), acc)}")
     print(f"t_0 = {t_0}")
     print(f"timestep dt = {dt} day(s)")
     print(f"time = {ndays} days / {ndays/30} months")
@@ -202,7 +173,7 @@ if __name__ == '__main__':
 
     # Plot results
     #plotSIR(solutionB)
-    #subplotSIR(solutionA, solutionB)
+    subplotSIR(solutionA, solutionB)
 
 
 
