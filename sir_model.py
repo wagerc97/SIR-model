@@ -10,10 +10,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
-def helperPlotEpsilonB(epsilon):
-    g = np.linspace(-10, 10, 50)
-    plt.plot(g, (epsilon(g)))
-    plt.show()
 
 def SIR_modelA(y, t, beta, gamma, epsilon):
     """
@@ -32,7 +28,7 @@ def SIR_modelA(y, t, beta, gamma, epsilon):
     return [dS_dt, dI_dt, dR_dt]
 
 # epsilon is a function of time
-def SIR_modelB1(y, t, beta, gamma, epsilon):
+def SIR_modelB(y, t, beta, gamma, epsilon):
     """
     Computes the derivative of y at t.
     :param y: result
@@ -48,7 +44,7 @@ def SIR_modelB1(y, t, beta, gamma, epsilon):
 
     return [dS_dt, dI_dt, dR_dt]
 # epsilon is 1/150, so protection wares of after 5 months
-def SIR_modelB(y, t, beta, gamma, epsilon):
+def SIR_modelB1(y, t, beta, gamma, epsilon):
     """
     Computes the derivative of y at t.
     :param y: result
@@ -93,6 +89,11 @@ def subplotSIR(solA, solB):
     ax2.legend(); ax2.grid();
     plt.show()
 
+def helperPlotEpsilonB(epsilon):
+    g = np.linspace(-10, 10, 50)
+    plt.plot(g, (epsilon(g)))
+    plt.grid(); plt.show()
+
 
 if __name__ == '__main__':
     # Start the simulation with initial values
@@ -108,7 +109,7 @@ if __name__ == '__main__':
     N = 9e6         # population size
     acc = 3         # accuracy, number of decimal places in results
     S_0 = 0.9       # fraction of Susceptible at t(0)
-    I_0 = 1353/N    # fraction of Infected
+    I_0 = 1353/N    # fraction of Infected (1353 reported cases)
     R_0 = 0.0       # fraction of Recovered
     beta = 0.35     # infection rate
         #k =  # contact rate
@@ -117,15 +118,43 @@ if __name__ == '__main__':
         #beta = k * q * D # infection rate
     gamma = 10/ndays     # recovery rate (10 days)
 
-    # Model A considers a constant decay in immunity over time
+    ##### Model A considers a constant decay in immunity over time #####
     epsilonA = 0.0
 
-    # Model B considers the decay in immunity as a function over time
-    # epsilonB_sigmoid is a sigmoid function with a damper
-    # sigmoid is similar to a jump function
+    ##### Model B considers the decay in immunity as a function over time #####
+
+    ### sigmoid function with a damper (sigmoid is similar to a jump function)
     epsilonB_sigmoid = lambda t: (1 / (1 + np.exp(-t))) * 0.02
+
+    ### Constant rate of decay
+    epsilonB_constant = 1/ndays
+
+    ### Gauss Function with a damper
+    #def epsilonB_gaussian(x_gauss, alpha_gauss, r_gauss):
+    def epsilonB_gaussian(x_halfNormal):
+        """
+        Return a list of normally distributed values. Depending on the input list of x-values only half-normal values.
+        :param x_halfNormal:
+        :return:
+        """
+        #return 1. / (np.sqrt(alpha_gauss ** np.pi)) * np.exp(-alpha_gauss * np.power((x_gauss - r_gauss), 2.))
+        gauss=lambda x_gauss, alpha_gauss, r_gauss: 1. / (np.sqrt(alpha_gauss ** np.pi)) * np.exp(-alpha_gauss * np.power((x_gauss - r_gauss), 2.))
+        gaussList = gauss(x_halfNormal, 1, 0)
+        #print(gaussList)
+        return gaussList
+
+    x_halfNormal = np.linspace(-3, 0, ndays)
+    #x_gauss = np.linspace(-3, 3, 100)
+    #plt.plot(x_gauss, epsilonB_gaussian(x_gauss, 1, 0)); plt.grid(); plt.show()
+    plt.plot(x_halfNormal, epsilonB_gaussian(x_halfNormal)); plt.grid(); plt.show()
+
+    ### Half normal distribution
+
     # Maybe try constant, Gaussian, Poisson, ... decay rate
-    epsilonB = 1/150
+    ######### CHOICE #########
+    epsilonB = epsilonB_gaussian
+    helperPlotEpsilonB(epsilonB_gaussian)
+
 
     print(f"N = {int(N)}")
     print(f"S_0 = {S_0}")
@@ -134,8 +163,8 @@ if __name__ == '__main__':
     print(f"beta = {beta}")
     print(f"gamma = {gamma}")
     print(f"epsilonA = {epsilonA}")
-    # print(f"epsilonB = {round(np.mean(epsilonB(t)), acc)}")
-    print(f"epsilonB = {round(epsilonB, acc)}")
+    print(f"epsilonB = {round(np.mean(epsilonB(t)), acc)}")
+    # print(f"epsilonB = {round(epsilonB, acc)}")
     print(f"t_0 = {t_0}")
     print(f"timestep dt = {dt} day(s)")
     print(f"time = {ndays} days / {ndays/30} months")
@@ -173,8 +202,7 @@ if __name__ == '__main__':
 
     # Plot results
     #plotSIR(solutionB)
-    subplotSIR(solutionA, solutionB)
-
+    #subplotSIR(solutionA, solutionB)
 
 
 
