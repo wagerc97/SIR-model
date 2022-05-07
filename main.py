@@ -150,6 +150,7 @@ if __name__ == '__main__':
     print(f"S_0 = {S_0}")
     print(f"I_0 = {I_0}")
     print(f"R_0 = {R_0}")
+    print(f"damper = {damper}")
     print(f"beta = {beta}")
     print(f"gamma = {gamma}")
     print(f"epsilonA = {epsilonA}")
