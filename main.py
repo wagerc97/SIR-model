@@ -10,7 +10,6 @@ Author: Clemens Wager, BSc
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-import helpers
 
 
 def SIR_modelA(y, t, beta, gamma, epsilon):
@@ -33,6 +32,10 @@ def SIR_modelA(y, t, beta, gamma, epsilon):
 def SIR_modelB(y, t, beta, gamma, epsilon):
     """
     Computes the derivative of y at t.
+
+    type of t <class 'float'>
+    t = 0.0
+
     :param y: result
     :param t: time
     :param beta: infection rate
@@ -40,6 +43,9 @@ def SIR_modelB(y, t, beta, gamma, epsilon):
     :return:
     """
     S, I, R, = y
+    #print("type of t", type(t)) #numpy.float64
+    #print("t =", t)
+    #print("epsilon(t) =", epsilon(t))
     dS_dt = -beta*S*I + epsilon(t)*R
     dI_dt = beta*S*I - gamma*I
     dR_dt = gamma*I - epsilon(t)*R
@@ -56,29 +62,46 @@ def plotSIR(solution):
     plt.xlabel("Time"); plt.ylabel("Ratio of Population")
     plt.show()
 
-def subplotSIR(solA, solB):
+def subplotsSIR(solA, solB):
     # Plot the 3 phase lines for S, I and R
-    # Model A
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=[10, 8])
-    fig.suptitle("SIR-model A")
+    plt.setp((ax1, ax2), xticks=np.arange(0, ndays, 30), xticklabels=['Sep', 'Okt', 'Nov', 'Dec', 'Jan'],
+             yticks=np.linspace(0, 1, 11))
+    fig.suptitle("SIR-model\nModel A (decay=0) vs Model B (decay as f(t))")
+    # Model A
     ax1.plot(t, solA[:, 0], label="S(t) Susceptible", color="orange")
     ax1.plot(t, solA[:, 1], label="I(t) Infected", color="red")
     ax1.plot(t, solA[:, 2], label="R(t) Recovered", color="green")
+    ax1.set_ylim([0.0, 1.0])
+    ax1.set_xlim([0.0, ndays])
     ax1.set_ylabel("Ratio of Population")
     ax1.legend(); ax1.grid();
     # Model B
     ax2.plot(t, solB[:, 0], label="S(t) Susceptible", color="orange")
     ax2.plot(t, solB[:, 1], label="I(t) Infected", color="red")
     ax2.plot(t, solB[:, 2], label="R(t) Recovered", color="green")
+    ax2.set_ylim([0.0, 1.0])
+    ax2.set_xlim([0.0, ndays])
     ax2.set_ylabel("Ratio of Population")
-    ax2.set_xlabel("Time in days")
+    ax2.set_xlabel("Time")
     ax2.legend(); ax2.grid();
     plt.show()
 
-def helperPlotEpsilonB(epsilon):
-    g = np.linspace(-10, 10, 50)
+def helperPlotEpsilonB(epsilon, xstart, xstop):
+    g = np.linspace(xstart, xstop, 50)
     plt.plot(g, (epsilon(g)))
+    plt.title("Plot epsilon function for Model B\n(rate of protection decay)")
+    plt.xticks(ticks=np.arange(xstart, xstop, 30), labels=['Sep', 'Okt', 'Nov', 'Dec', 'Jan'])
+    plt.yticks(np.linspace(0, 1, 11)); plt.ylim(0, 1); plt.xlim(xstart, xstop)
     plt.grid(); plt.show()
+
+def helperMap(t):
+    a = t_0
+    b = ndays
+    c = -3
+    d = 0
+    y = (t-a) * ((d-c)/(b-a)) + c
+    return y
 
 
 if __name__ == '__main__':
@@ -90,13 +113,12 @@ if __name__ == '__main__':
     dt = 1  # time step -> 1 day
     ndays = 150  # duration of simulation -> 5 months = 150 days
     t = np.arange(start=t_0, stop=ndays, step=dt)
-    print(t)
 
     # Initial conditions
     N = 9e6         # population size
     acc = 3         # accuracy, number of decimal places in results
     S_0 = 0.9       # fraction of Susceptible at t(0)
-    I_0 = 1353/N    # fraction of Infected (1353 reported cases)
+    I_0 = 0.1       # fraction of Infected (1353 reported cases)
     R_0 = 0.0       # fraction of Recovered
     beta = 0.35     # infection rate
         #k =  # contact rate
@@ -109,23 +131,19 @@ if __name__ == '__main__':
     epsilonA = 0.0
 
     ##### Model B considers the decay in immunity as a function over time #####
+    damper = 0.1
+    ### Constant rate of decay
+    epsilonB_constant = lambda t: 1 / ndays * t * damper
 
     ### sigmoid function with a damper (sigmoid is similar to a jump function)
-    epsilonB_sigmoid = lambda t: (1 / (1 + np.exp(-t)) ) * 0.02
-
-    ### Constant rate of decay
-    epsilonB_constant = lambda t : 1/ndays
+    epsilonB_sigmoid = lambda t: (1 / (1 + np.exp(-t)) ) * damper
 
     ### Half Normal Distributed values for decay rates
-    #x_halfNormalShow = np.linspace(-3, 0, ndays) # list to confirm half normal distribution
-    #plt.plot(x_halfNormalShow, [epsilonB_halfGauss(x) for x in range(ndays)]) # plot half normal distribution
-    #plt.grid(); plt.show(); # show plot
-    epsilonB_halfNorm = lambda t: helpers.epsB_GaussList(t)
-
+    epsilonB_halfNorm = lambda t: 1. / (np.sqrt(1 ** np.pi)) * np.exp(-1 * np.power(helperMap(t), 2.)) * damper
 
     ######### CHOICE #########
     epsilonB = epsilonB_halfNorm
-    #helperPlotEpsilonB(epsilonBGaussian)
+    helperPlotEpsilonB(epsilonB, xstart=0, xstop=150)
 
 
     print(f"N = {int(N)}")
@@ -137,8 +155,9 @@ if __name__ == '__main__':
     print(f"epsilonA = {epsilonA}")
     #print(f"epsilonB = {round(np.mean(epsilonB(t)), acc)}")
     print(f"t_0 = {t_0}")
-    print(f"timestep dt = {dt} day(s)")
-    print(f"time = {ndays} days / {ndays/30} months")
+    print(f"timestep dt = {dt} day")
+    print(f"timespan = {ndays} days / {ndays/30} months")
+
 
     # Solve coupled system of ODEs using RK4
     solutionA = np.array(solve_ivp(
@@ -153,27 +172,22 @@ if __name__ == '__main__':
         fun=lambda t, y: SIR_modelB(y, t, beta, gamma, epsilonB),  # system of ODEs
         y0=[S_0, I_0, R_0],     # initial condition
         t_span=[t_0, ndays],    # time points
-        t_eval=t,               # when to store computed solutions
+        t_eval=t,               # times when to store computed solution
         method='RK45',          # default
     ).y.T)  # select transformed solution matrix
 
-    # Scale results on Austrian population
-    scaled = False
-    if scaled:
-        solutionA = solutionA*N
-        solutionB = solutionB*N
-        acc = 0
 
     # Stdout results
     print("\n---------------------------------------------")
-    print("Results scaled:", scaled)
-    print("Zenith of  infected wave in Model A is at", round(max(solutionA[:, 1]), acc))
-    print("Zenith of  infected wave in Model B is at", round(max(solutionB[:, 1]), acc))
+    print("Day 0: 1st September, 2021")
+    print(f"Day {ndays}: 31st January, 2021")
+    print("Infected maximum in Model A:", round(max(solutionA[:, 1]), acc))
+    print("Infected maximum in Model B:", round(max(solutionB[:, 1]), acc))
     print("Plot is ready!")
 
     # Plot results
     #plotSIR(solutionB)
-    subplotSIR(solutionA, solutionB)
+    subplotsSIR(solutionA, solutionB)
 
 
 
