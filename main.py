@@ -14,7 +14,7 @@ from scipy.integrate import solve_ivp
 
 def SIR_modelA(y, t, beta, gamma, epsilon):
     """
-    Computes the derivative of y at t.
+    Computes the derivative of y at t. Callable by scipy.integrate.sove_ivp.
     :param y: result
     :param t: time
     :param beta: infection rate
@@ -22,20 +22,18 @@ def SIR_modelA(y, t, beta, gamma, epsilon):
     :return:
     """
     S, I, R, = y
-    dS_dt = -beta*S*I + epsilon*R
+    #dS_dt = -beta*S*I + epsilon*R # epsilon term removable
+    dS_dt = -beta*S*I
     dI_dt = beta*S*I - gamma*I
-    dR_dt = gamma*I - epsilon*R
+    #dR_dt = gamma*I - epsilon*R # epsilon term removable
+    dR_dt = gamma*I
 
     return [dS_dt, dI_dt, dR_dt]
 
 # epsilon is a function of time
 def SIR_modelB(y, t, beta, gamma, epsilon):
     """
-    Computes the derivative of y at t.
-
-    type of t <class 'float'>
-    t = 0.0
-
+    Computes the derivative of y at t. Callable by scipy.integrate.sove_ivp.
     :param y: result
     :param t: time
     :param beta: infection rate
@@ -64,10 +62,10 @@ def plotSIR(solution):
 
 def subplotsSIR(solA, solB):
     # Plot the 3 phase lines for S, I and R
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=[10, 8])
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8,6))
     plt.setp((ax1, ax2), xticks=np.arange(0, ndays, 30), xticklabels=['Sep', 'Okt', 'Nov', 'Dec', 'Jan'],
              yticks=np.linspace(0, 1, 11))
-    fig.suptitle("SIR-model\nModel A (decay=0) vs Model B (decay as f(t))")
+    fig.suptitle("Comparison of SIR models\nModel A (decay rate = 0) vs Model B (decay rate as f(t))")
     # Model A
     ax1.plot(t, solA[:, 0], label="S(t) Susceptible", color="orange")
     ax1.plot(t, solA[:, 1], label="I(t) Infected", color="red")
@@ -96,6 +94,7 @@ def helperPlotEpsilonB(epsilon, xstart, xstop):
     plt.grid(); plt.show()
 
 def helperMap(t):
+    # https://math.stackexchange.com/questions/377169/going-from-a-value-inside-1-1-to-a-value-in-another-range
     a = t_0
     b = ndays
     c = -3
@@ -117,21 +116,28 @@ if __name__ == '__main__':
     # Initial conditions
     N = 9e6         # population size
     acc = 3         # accuracy, number of decimal places in results
-    S_0 = 0.9       # fraction of Susceptible at t(0)
-    I_0 = 0.1       # fraction of Infected (1353 reported cases)
-    R_0 = 0.0       # fraction of Recovered
-    beta = 0.35     # infection rate
-        #k =  # contact rate
-        #q =  # probability of an infection
-        #D = 7 # duration of infectious state in days
-        #beta = k * q * D # infection rate
+
+    I_0 = 1353/N       # fraction of Infected (1353 reported cases)
+
+    R_0 = 0.58 + 0.0       # fraction of Recovered
+
+    # 58% full vaccine protection, recovered?? vaccine age??
+    S_0 = 1 - I_0 - R_0     # fraction of Susceptible at t(0)
+
+    # k =  # contact rate
+    # q =  # probability of an infection
+    # D = 7 # duration of infectious state in days
+    # beta = k * q * D # infection rate
+    beta = 1.07 #0.35     # infection rate
+
     gamma = 10/ndays     # recovery rate (10 days)
 
     ##### Model A considers a constant decay in immunity over time #####
     epsilonA = 0.0
 
     ##### Model B considers the decay in immunity as a function over time #####
-    damper = 0.1
+    # damps the function of epsilon
+    damper = 0.05
     ### Constant rate of decay
     epsilonB_constant = lambda t: 1 / ndays * t * damper
 
@@ -143,21 +149,21 @@ if __name__ == '__main__':
 
     ######### CHOICE #########
     epsilonB = epsilonB_halfNorm
-    helperPlotEpsilonB(epsilonB, xstart=0, xstop=150)
+   # helperPlotEpsilonB(epsilonB, xstart=0, xstop=150)
 
 
     print(f"N = {int(N)}")
-    print(f"S_0 = {S_0}")
-    print(f"I_0 = {I_0}")
-    print(f"R_0 = {R_0}")
+    print(f"S_0 = {round(S_0, acc)}")
+    print(f"I_0 = {round(I_0, acc)}")
+    print(f"R_0 = {round(R_0, acc)}")
     print(f"damper = {damper}")
-    print(f"beta = {beta}")
-    print(f"gamma = {gamma}")
-    print(f"epsilonA = {epsilonA}")
+    print(f"beta = {round(beta, acc)}")
+    print(f"gamma = {round(gamma, acc)}")
+    print(f"epsilonA = {round(epsilonA, acc)}")
     #print(f"epsilonB = {round(np.mean(epsilonB(t)), acc)}")
     print(f"t_0 = {t_0}")
-    print(f"timestep dt = {dt} day")
     print(f"timespan = {ndays} days / {ndays/30} months")
+    print(f"timestep dt = {dt} day")
 
 
     # Solve coupled system of ODEs using RK4
@@ -186,7 +192,7 @@ if __name__ == '__main__':
     print("Infected maximum in Model B:", round(max(solutionB[:, 1]), acc))
     print("Plot is ready!")
 
-    # Plot results
+    # Plot results #
     #plotSIR(solutionB)
     subplotsSIR(solutionA, solutionB)
 
