@@ -1,11 +1,13 @@
-"""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 main.py
 Script for 250070 SE Seminar Applied PDE (2022S)
 Interpreter: Python 3.7
 Author: Clemens Wager, BSc
-"""""""""""""""""""""""""""""""""""""""""""""""""""""
-# A Python script to compute SIR model of infection
-# dynamics of the Covid-19 pandemic in Austria
+----------------------------------------------------
+# This is a Python script to simulate and visualize two SIR models.
+# To model the infection dynamics of the Covid-19 pandemic in Austria.
+# To test the effect on dynamics of decaying vaccination protection.
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 import numpy as np
 import matplotlib.pyplot as plt
