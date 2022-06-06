@@ -1,5 +1,5 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""
-SirModel.py
+main.py
 Script for 250070 SE Seminar Applied PDE (2022S)
 Interpreter: Python 3.7
 Author: Clemens Wager, BSc
