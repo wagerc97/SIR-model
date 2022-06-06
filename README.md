@@ -1,6 +1,8 @@
-# SIR  - an Epidemic Model
+# The effect of time dependent vaccination protection (SIR-model)
+
 ## Question:
-How will the results of two SIR models for Covid-19 infection dynamics differ if one additionally considers time dependence of vaccination protection? <br>
+How will the results of two SIR models for Covid-19 infection dynamics differ if additionally time dependence of vaccination protection is considered?  
+
 ## Hypothesis:
 The model considering the time dependent vaccination protection will be more accurate. <br>
 
@@ -12,12 +14,15 @@ The model considering the time dependent vaccination protection will be more acc
 ---
 ### Assumptions: 
 * Model A considers 5 months of constant vaccination protection / natural immunity	
-* Model B considers the vaccination protection / natural immunity as a function of time over the course of 5 months.
+* Model B considers the vaccination protection / natural immunity as a function of time.
 * Other Assumptions:
-  - R = Removed / Recovered / Vaccinated 
-  - S -> I (Susceptiles turn infected over time)
-  - I -> R (Infected recover after 10 days and gain immunity)	Phase2: immunity duration? - 3 / 5 / 6 months 
-  - R -> S (fallback after 5 months)
-  - Birth rate b = mortality m OR both are considered negligibly small
+  - **Dev Phase 1:**
+    - R = Removed / Recovered / Vaccinated 
+    - S -> I (Susceptiles turn infected over time)
+    - I -> R (Infected recover after 10 days and gain immunity)	
+  - **Dev Phase 2:**  
+    - immunity duration? - 5 months 
+    - R -> S (fallback after 5 months) -> How is the fallback time distributed? -> Half-Gaussian distribution
+    - Birth rate b = mortality m OR both are considered negligibly small
 
 ---
