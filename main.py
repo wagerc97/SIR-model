@@ -11,7 +11,7 @@ Author: Clemens Wager, BSc
 
 import numpy as np
 import matplotlib.pyplot as plt
-#from scipy.integrate import solve_ivp
+from scipy.integrate import solve_ivp
 
 
 def SIR_modelA(y, t, beta, gamma, epsilon):
@@ -62,7 +62,10 @@ def plotSIR(solution):
     plt.xlabel("Time"); plt.ylabel("Ratio of Population")
     plt.show()
 
-def subplotsSIR(solA, solB):
+
+
+
+def subplotsSIR1(solA, solB):
     # Plot the 3 phase lines for S, I and R
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8,6))
     plt.setp((ax1, ax2), xticks=np.arange(0, ndays, 30), xticklabels=['Sep', 'Okt', 'Nov', 'Dec', 'Jan'],
@@ -86,6 +89,40 @@ def subplotsSIR(solA, solB):
     ax2.set_xlabel("Time")
     ax2.legend(); ax2.grid();
     plt.show()
+
+
+def subplotsSIR(solA, solB):
+    # Plot the 3 phase lines for S, I and R
+    fig = plt.figure(figsize=(8,6))
+    fig.suptitle("Comparison of SIR models\nModel A (decay rate = 0) vs Model B (decay rate as f(t))")
+    ax1 = fig.add_subplot(2, 1, 1)
+    ax2 = fig.add_subplot(2, 1, 2, sharex=ax1)  # shared x axes
+    plt.setp((ax1,ax2), xticks=np.arange(0,ndays,30))  # set xticks
+
+     # Model A
+    ax1.plot(t, solA[:, 0], label="S(t) Susceptible", color="orange")
+    ax1.plot(t, solA[:, 1], label="I(t) Infected", color="red")
+    ax1.plot(t, solA[:, 2], label="R(t) Recovered", color="green")
+    ax1.set_ylim([0.0, 1.0])
+    ax1.set_xlim([0.0, ndays])
+    ax1.set_ylabel("Ratio of Population")
+    ax1.legend(loc="upper right"); ax1.grid();
+    # Model B
+    plt.setp(ax1.get_xticklabels(), visible=False)  # dont show xlabels on ax1
+    ax2.set_xticklabels(['Sep', 'Okt', 'Nov', 'Dec', 'Jan'])
+
+    ax2.plot(t, solB[:, 0], label="S(t) Susceptible", color="orange")
+    ax2.plot(t, solB[:, 1], label="I(t) Infected", color="red")
+    ax2.plot(t, solB[:, 2], label="R(t) Recovered", color="green")
+    ax2.set_ylim([0.0, 1.0])
+    ax2.set_xlim([0.0, ndays])
+    ax2.set_ylabel("Ratio of Population")
+    ax2.set_xlabel("Time")
+    ax2.legend(loc="upper right"); ax2.grid();
+    plt.subplots_adjust(wspace=0.1, hspace=0.09)
+    plt.show()
+
+
 
 def helperPlotEpsilonB(epsilon, xstart, xstop):
     g = np.linspace(xstart, xstop, 50)
