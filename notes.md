@@ -11,7 +11,7 @@ IMPORTANT:
   - ``beta`` could also be defined by ``beta = k * q * D `` (k = contact rate, q = probability of an infection, D = 7 duration of infectious state in days)
     But we don't have accurate sources for that.
 - ``damper`` = 0.05 to damp the effect of the ``epsilonB`` which models the decay of the vaccination  
-- ``R0 = beta/gamma`` so infection/recovery rate
+- ``R0 = beta/gamma`` so infection over recovery rate
 
 ## Offene Fragen
 - Wie passe ich die Zahlen an?

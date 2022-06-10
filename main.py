@@ -155,7 +155,7 @@ if __name__ == '__main__':
     epsilonB_halfNorm = lambda t: 1. / (np.sqrt(1 ** np.pi)) * np.exp(-1 * np.power(helperMap(t), 2.)) * damper
 
     ######### CHOICE #########
-    epsilonB = epsilonB_halfNorm
+    epsilonB = epsilonB_constant
    # helperPlotEpsilonB(epsilonB, xstart=0, xstop=150)
 
 
@@ -200,9 +200,9 @@ if __name__ == '__main__':
     print("Plot is ready!")
 
     # Plot results #
-    plotSIR(solutionB)
-    #helperPlotEpsilonB(epsilonB, 0, ndays, damper)
-    subplotsSIR(solutionA, solutionB)
+    #plotSIR(solutionB)    # Plot only model B
+    helperPlotEpsilonB(epsilonB, 0, ndays, damper)
+    subplotsSIR(solutionA, solutionB)    # plot both models
 
 
 
