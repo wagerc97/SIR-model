@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
 
-def SIR_modelA(y, t, beta, gamma, epsilon):
+def SIR_modelA(y, t, beta, gamma, epsilon, max_infection_protection):
     """
     Computes the derivative of y at t. Callable by scipy.integrate.solve_ivp.
     :param y: result
@@ -24,16 +24,16 @@ def SIR_modelA(y, t, beta, gamma, epsilon):
     :return:
     """
     S, I, R, = y
-    #dS_dt = -beta*S*I + epsilon*R # epsilon term removable
-    dS_dt = -beta*S*I
-    dI_dt = beta*S*I - gamma*I
-    #dR_dt = gamma*I - epsilon*R # epsilon term removable
-    dR_dt = gamma*I
+    # dS_dt = -beta*S*I + epsilon*R # epsilon term removable
+    dS_dt = -beta * S * I
+    dI_dt = beta * S * I - gamma * I * max_infection_protection
+    # dR_dt = gamma*I - epsilon*R # epsilon term removable
+    dR_dt = gamma * I * max_infection_protection
 
     return [dS_dt, dI_dt, dR_dt]
 
 # epsilon is a function of time
-def SIR_modelB(y, t, beta, gamma, epsilon):
+def SIR_modelB(y, t, beta, gamma, epsilon, max_infection_protection):
     """
     Computes the derivative of y at t. Callable by scipy.integrate.solve_ivp.
     :param y: result
@@ -46,9 +46,9 @@ def SIR_modelB(y, t, beta, gamma, epsilon):
     #print("type of t", type(t)) #numpy.float64
     #print("t =", t)
     #print("epsilon(t) =", epsilon(t))
-    dS_dt = -beta*S*I + epsilon(t)*R
-    dI_dt = beta*S*I - gamma*I
-    dR_dt = gamma*I - epsilon(t)*R
+    dS_dt = -beta * S * I + epsilon(t) * R
+    dI_dt = beta * S * I - gamma * I * max_infection_protection
+    dR_dt = gamma * I * max_infection_protection - epsilon(t) * R
 
     return [dS_dt, dI_dt, dR_dt]
 
@@ -78,7 +78,7 @@ def subplotsSIR(solA, solB):
     ax1.set_ylim([0.0, 1.0])
     ax1.set_xlim([0.0, ndays])
     ax1.set_ylabel("Ratio of Population")
-    ax1.legend(loc="upper right"); ax1.grid();
+    ax1.legend(loc="upper left"); ax1.grid();
     # Model B
     plt.setp(ax1.get_xticklabels(), visible=False)  # dont show xlabels on ax1
     ax2.set_xticklabels(['Sep', 'Okt', 'Nov', 'Dec', 'Jan'])
@@ -90,9 +90,10 @@ def subplotsSIR(solA, solB):
     ax2.set_xlim([0.0, ndays])
     ax2.set_ylabel("Ratio of Population")
     ax2.set_xlabel("Time")
-    ax2.legend(loc="upper right"); ax2.grid();
+    ax2.legend(loc="upper left"); ax2.grid();
     plt.subplots_adjust(wspace=0.1, hspace=0.09)
     plt.show()
+
 
 def helperPlotEpsilonB(epsilon, xstart, xstop, damper):
     g = np.linspace(xstart, xstop, 50)
@@ -101,6 +102,7 @@ def helperPlotEpsilonB(epsilon, xstart, xstop, damper):
     plt.xticks(ticks=np.arange(xstart, xstop, 30), labels=['Sep', 'Okt', 'Nov', 'Dec', 'Jan'])
     plt.yticks(np.linspace(0, 1, 11)); plt.ylim(0, 1); plt.xlim(xstart, xstop)
     plt.grid(); plt.show()
+
 
 def helperMap(t):
     """ Maps an input function onto another range. Used for the Half-Gaussian distribution """
@@ -143,7 +145,7 @@ if __name__ == '__main__':
     epsilonA = 0.0
 
     ##### Model B considers the decay in immunity as a function over time #####
-    # damps the function of epsilon
+    # damps the decay over time
     damper = 0.05
     ### Constant rate of decay
     epsilonB_constant = lambda t: 1 / ndays * t * damper
@@ -155,8 +157,11 @@ if __name__ == '__main__':
     epsilonB_halfNorm = lambda t: 1. / (np.sqrt(1 ** np.pi)) * np.exp(-1 * np.power(helperMap(t), 2.)) * damper
 
     ######### CHOICE #########
-    epsilonB = epsilonB_constant
+    epsilonB = epsilonB_halfNorm #epsilonB_constant
    # helperPlotEpsilonB(epsilonB, xstart=0, xstop=150)
+
+    # Like the COVID Prognose Konsortium a maximum of 80% infection protection is assumed
+    max_infection_protection = 1#0.8
 
 
     print(f"N = {int(N)}")
@@ -175,7 +180,7 @@ if __name__ == '__main__':
 
     # Solve coupled system of ODEs using RK4
     solutionA = np.array(solve_ivp(
-        fun=lambda t, y: SIR_modelA(y, t, beta, gamma, epsilonA),  # system of ODEs
+        fun=lambda t, y: SIR_modelA(y, t, beta, gamma, epsilonA, max_infection_protection),  # system of ODEs
         y0=[S_0, I_0, R_0],     # initial condition
         t_span=[t_0, ndays],    # time points
         t_eval=t,               # when to store computed solutions
@@ -183,7 +188,7 @@ if __name__ == '__main__':
     ).y.T)  # select transformed solution matrix
 
     solutionB = np.array(solve_ivp(
-        fun=lambda t, y: SIR_modelB(y, t, beta, gamma, epsilonB),  # system of ODEs
+        fun=lambda t, y: SIR_modelB(y, t, beta, gamma, epsilonB, max_infection_protection),  # system of ODEs
         y0=[S_0, I_0, R_0],     # initial condition
         t_span=[t_0, ndays],    # time points
         t_eval=t,               # times when to store computed solution
@@ -201,7 +206,7 @@ if __name__ == '__main__':
 
     # Plot results #
     #plotSIR(solutionB)    # Plot only model B
-    helperPlotEpsilonB(epsilonB, 0, ndays, damper)
+    #helperPlotEpsilonB(epsilonB, 0, ndays, damper)
     subplotsSIR(solutionA, solutionB)    # plot both models
 
 
