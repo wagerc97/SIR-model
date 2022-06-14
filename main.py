@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
 
-def SIR_modelA(y, t, beta, gamma, epsilon, max_infection_protection):
+def SIR_modelA(y, t, beta, gamma, epsilon, vacc_efficay):
     """
     Computes the derivative of y at t. Callable by scipy.integrate.solve_ivp.
     :param y: result
@@ -26,14 +26,14 @@ def SIR_modelA(y, t, beta, gamma, epsilon, max_infection_protection):
     S, I, R, = y
     # dS_dt = -beta*S*I + epsilon*R # epsilon term removable
     dS_dt = -beta * S * I
-    dI_dt = beta * S * I - gamma * I * max_infection_protection
+    dI_dt = beta * S * I - gamma * I * vacc_efficay
     # dR_dt = gamma*I - epsilon*R # epsilon term removable
-    dR_dt = gamma * I * max_infection_protection
+    dR_dt = gamma * I * vacc_efficay
 
     return [dS_dt, dI_dt, dR_dt]
 
 # epsilon is a function of time
-def SIR_modelB(y, t, beta, gamma, epsilon, max_infection_protection):
+def SIR_modelB(y, t, beta, gamma, epsilon, vacc_efficay):
     """
     Computes the derivative of y at t. Callable by scipy.integrate.solve_ivp.
     :param y: result
@@ -47,10 +47,11 @@ def SIR_modelB(y, t, beta, gamma, epsilon, max_infection_protection):
     #print("t =", t)
     #print("epsilon(t) =", epsilon(t))
     dS_dt = -beta * S * I + epsilon(t) * R
-    dI_dt = beta * S * I - gamma * I * max_infection_protection
-    dR_dt = gamma * I * max_infection_protection - epsilon(t) * R
+    dI_dt = beta * S * I - gamma * vacc_efficay * I
+    dR_dt = gamma * vacc_efficay * I - epsilon(t) * R
 
     return [dS_dt, dI_dt, dR_dt]
+
 
 def plotSIR(solution):
     # Plot the 3 phase lines for S, I and R
@@ -128,8 +129,8 @@ if __name__ == '__main__':
     # Initial conditions
     N = 9e6                 # population size
     acc = 3                 # accuracy, number of decimal places in results
-    I_0 = 1353/N            # fraction of Infected (1353 reported cases)
-    R_0 = 0.58 + 0.0        # fraction of Vaccinated + Recovered (?)
+    I_0 = 1500/N            # fraction of Infected (1353 reported cases)
+    R_0 = 0.58 + (1100/N)        # fraction of Vaccinated + 1100 Recovered
     # 58% full vaccine protection. How many recovered? How old where the vaccines?
     S_0 = 1 - I_0 - R_0     # fraction of Susceptible at
 
@@ -137,7 +138,7 @@ if __name__ == '__main__':
     # q =  # probability of an infection
     # D = 7 # duration of infectious state in days
     # beta = k * q * D # infection rate
-    beta = 1.07 #0.35     # infection rate
+    beta = 1.07      # infection rate
 
     gamma = 1/10     # recovery rate  10 days -> 0.1
 
@@ -147,23 +148,26 @@ if __name__ == '__main__':
     ##### Model B considers the decay in immunity as a function over time #####
     # damps the decay over time
     damper = 0.05
+
     ### Constant rate of decay
     epsilonB_constant = lambda t: 1 / ndays * t * damper
 
     ### sigmoid function with a damper (sigmoid is similar to a jump function)
-    epsilonB_sigmoid = lambda t: (1 / (1 + np.exp(-t)) ) * damper
+    epsilonB_sigmoid = lambda t: (1 / ( 1 + np.exp(-t) )) * damper
 
     ### Half Normal Distributed values for decay rates
-    epsilonB_halfNorm = lambda t: 1. / (np.sqrt(1 ** np.pi)) * np.exp(-1 * np.power(helperMap(t), 2.)) * damper
+    epsilonB_halfGauss = lambda t: 1. / ( np.sqrt(1 ** np.pi) ) * np.exp( -1 * np.power(helperMap(t), 2.) ) * damper
 
     ######### CHOICE #########
-    epsilonB = epsilonB_halfNorm #epsilonB_constant
+    epsilonB = epsilonB_halfGauss #epsilonB_constant
    # helperPlotEpsilonB(epsilonB, xstart=0, xstop=150)
 
     # Like the COVID Prognose Konsortium a maximum of 80% infection protection is assumed
-    max_infection_protection = 1#0.8
+    vacc_efficay = 0.8    #  0.8
 
-
+    print(f"t_0 = {t_0}")
+    print(f"timespan = {ndays} days / {ndays / 30} months")
+    print(f"timestep dt = {dt} day")
     print(f"N = {int(N)}")
     print(f"S_0 = {round(S_0*100, 2)}%")
     print(f"I_0 = {round(I_0*100, 2)}%")
@@ -172,15 +176,14 @@ if __name__ == '__main__':
     print(f"gamma = {round(gamma, acc)} (recovery rate)")
     print(f"epsilonA = {round(epsilonA, acc)} (vaccination decay rate)")
     print(f"damper = {damper} (for epsilon)")
+    print(f"vaccination efficacy = {vacc_efficay*100}%")
     #print(f"epsilonB = {round(np.mean(epsilonB(t)), acc)}")
-    print(f"t_0 = {t_0}")
-    print(f"timespan = {ndays} days / {ndays/30} months")
-    print(f"timestep dt = {dt} day")
+
 
 
     # Solve coupled system of ODEs using RK4
     solutionA = np.array(solve_ivp(
-        fun=lambda t, y: SIR_modelA(y, t, beta, gamma, epsilonA, max_infection_protection),  # system of ODEs
+        fun=lambda t, y: SIR_modelA(y, t, beta, gamma, epsilonA, vacc_efficay),  # system of ODEs
         y0=[S_0, I_0, R_0],     # initial condition
         t_span=[t_0, ndays],    # time points
         t_eval=t,               # when to store computed solutions
@@ -188,7 +191,7 @@ if __name__ == '__main__':
     ).y.T)  # select transformed solution matrix
 
     solutionB = np.array(solve_ivp(
-        fun=lambda t, y: SIR_modelB(y, t, beta, gamma, epsilonB, max_infection_protection),  # system of ODEs
+        fun=lambda t, y: SIR_modelB(y, t, beta, gamma, epsilonB, vacc_efficay),  # system of ODEs
         y0=[S_0, I_0, R_0],     # initial condition
         t_span=[t_0, ndays],    # time points
         t_eval=t,               # times when to store computed solution
@@ -206,7 +209,7 @@ if __name__ == '__main__':
 
     # Plot results #
     #plotSIR(solutionB)    # Plot only model B
-    #helperPlotEpsilonB(epsilonB, 0, ndays, damper)
+    helperPlotEpsilonB(epsilonB, 0, ndays, damper)
     subplotsSIR(solutionA, solutionB)    # plot both models
 
 
