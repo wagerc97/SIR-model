@@ -96,15 +96,6 @@ def subplotsSIR(solA, solB):
     plt.show()
 
 
-def helperPlotEpsilonB(epsilon, xstart, xstop, damper):
-    g = np.linspace(xstart, xstop, 50)
-    plt.plot(g, (epsilon(g))*1/damper)
-    plt.title("Plot epsilon function for Model B\n(rate of vaccination protection decay)")
-    plt.xticks(ticks=np.arange(xstart, xstop, 30), labels=['Sep', 'Okt', 'Nov', 'Dec', 'Jan'])
-    plt.yticks(np.linspace(0, 1, 11)); plt.ylim(0, 1); plt.xlim(xstart, xstop)
-    plt.grid(); plt.show()
-
-
 def helperMap(t):
     """ Maps an input function onto another range. Used for the Half-Gaussian distribution """
     # https://math.stackexchange.com/questions/377169/going-from-a-value-inside-1-1-to-a-value-in-another-range
@@ -165,6 +156,7 @@ if __name__ == '__main__':
     # Like the COVID Prognose Konsortium a maximum of 80% infection protection is assumed
     vacc_efficay = 0.8    #  0.8
 
+
     print(f"t_0 = {t_0}")
     print(f"timespan = {ndays} days / {ndays / 30} months")
     print(f"timestep dt = {dt} day")
@@ -179,6 +171,19 @@ if __name__ == '__main__':
     print(f"vaccination efficacy = {vacc_efficay*100}%")
     #print(f"epsilonB = {round(np.mean(epsilonB(t)), acc)}")
 
+    def helperPlotEpsilonB(eps, xstart, xstop, damper):
+        g = np.linspace(xstart, xstop, 50)
+        colors=['black', 'blue']
+        labels=['Constant','Half Gaussian']
+        for i in range(len(eps)):
+            plt.plot(g, (eps[i](g)) * 1 / damper, color=colors[i], label=labels[i])
+        plt.title("Plot epsilon function for Model B\n(rate of vaccination protection decay)")
+        plt.xticks(ticks=np.arange(xstart, xstop, 30), labels=['Sep', 'Okt', 'Nov', 'Dec', 'Jan'])
+        plt.yticks(np.linspace(0, 1, 11));
+        plt.ylim(0, 1);
+        plt.xlim(xstart, xstop)
+        plt.legend(loc='upper left')
+        plt.grid(); plt.show()
 
 
     # Solve coupled system of ODEs using RK4
@@ -209,7 +214,7 @@ if __name__ == '__main__':
 
     # Plot results #
     #plotSIR(solutionB)    # Plot only model B
-    helperPlotEpsilonB(epsilonB, 0, ndays, damper)
+    helperPlotEpsilonB((epsilonB_constant, epsilonB_halfGauss), 0, ndays, damper)
     subplotsSIR(solutionA, solutionB)    # plot both models
 
 
