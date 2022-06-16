@@ -6,7 +6,7 @@ Author: Clemens Wager, BSc
 ----------------------------------------------------
 # This is a Python script to simulate and visualize two SIR models.
 # To model the infection dynamics of the Covid-19 pandemic in Austria.
-# To test the effect on dynamics of decaying vaccination protection.
+# To test the effect of decaying vaccination protection on pandemic dynamics.
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 import numpy as np
@@ -52,7 +52,6 @@ def SIR_modelB(y, t, beta, gamma, epsilon, vacc_efficay):
 
     return [dS_dt, dI_dt, dR_dt]
 
-
 def plotSIR(solution):
     # Plot the 3 phase lines for S, I and R
     plt.figure(figsize=[6, 4])
@@ -94,7 +93,6 @@ def subplotsSIR(solA, solB):
     ax2.legend(loc="upper left"); ax2.grid();
     plt.subplots_adjust(wspace=0.1, hspace=0.09)
     plt.show()
-
 
 def helperMap(t):
     """ Maps an input function onto another range. Used for the Half-Gaussian distribution """
