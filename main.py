@@ -11,6 +11,7 @@ Author: Clemens Wager, BSc
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from scipy.integrate import solve_ivp
 
 
@@ -32,7 +33,6 @@ def SIR_modelA(y, t, beta, gamma, epsilon, vacc_efficay):
 
     return [dS_dt, dI_dt, dR_dt]
 
-# epsilon is a function of time
 def SIR_modelB(y, t, beta, gamma, epsilon, vacc_efficay):
     """
     Computes the derivative of y at t. Callable by scipy.integrate.solve_ivp.
@@ -75,6 +75,9 @@ def subplotsSIR(solA, solB):
     ax1.plot(t, solA[:, 0], label="Susceptible", color="orange")
     ax1.plot(t, solA[:, 1], label="Infected", color="red")
     ax1.plot(t, solA[:, 2], label="Recovered", color="green")
+    #plot official data
+    ax1.plot(t, officialDataScaled(), label="Official infections", color="blue")
+
     ax1.set_ylim([0.0, 1.0])
     ax1.set_xlim([0.0, ndays])
     ax1.set_ylabel("Ratio of Population")
@@ -86,6 +89,9 @@ def subplotsSIR(solA, solB):
     ax2.plot(t, solB[:, 0], label="Susceptible", color="orange")
     ax2.plot(t, solB[:, 1], label="Infected", color="red")
     ax2.plot(t, solB[:, 2], label="Recovered", color="green")
+    #plot official data
+    ax2.plot(t, officialDataScaled(), label="Official infections", color="blue")
+
     ax2.set_ylim([0.0, 1.0])
     ax2.set_xlim([0.0, ndays])
     ax2.set_ylabel("Ratio of Population")
@@ -105,6 +111,42 @@ def helperMap(t):
     return y
 
 
+def officialDataMinusOffset(filename="timeline-faelle-ems_period_simple.csv"):
+    """ data source: https://www.data.gv.at/katalog/dataset/9723b0c6-48f4-418a-b301-e717b6d98c92 """
+    df = pd.read_csv(".\\data\\"+filename, delimiter=';', decimal=',')
+    df = df['total_infections']  # select column
+    offset_t0 = df[0] - officialInfections_t0  # number of past infections
+    df = (df.to_numpy() - offset_t0)  # scale data: subtract past infections
+    return df
+
+
+def officialDataScaled(filename="timeline-faelle-ems_period_simple.csv"):
+    """ data source: https://www.data.gv.at/katalog/dataset/9723b0c6-48f4-418a-b301-e717b6d98c92 """
+    df = pd.read_csv(".\\data\\"+filename, delimiter=';', decimal=',')
+    # Get number of active cases (infected people) per day
+    df = df['total_infections']  # select column
+    offset_t0 = df[1] - officialInfections_t0  # number of past infections
+    df = (df.to_numpy() - offset_t0) / N  # scale data: subtract past infections and divide by population size
+    return df
+
+
+def plotSirAndOfficialData(solution):
+    # Plot the 3 phase lines for S, I and R
+    plt.figure(figsize=[6, 4])
+    plt.plot(t, solution[:, 0], label="Susceptible", color="orange")
+    plt.plot(t, solution[:, 1], label="Infected", color="red")
+    #plt.plot(t, solution[:, 2], label="Recovered", color="green")
+
+    #plot official data
+    plt.plot(t, officialDataScaled(), label="Official infections", color="blue")
+
+    plt.xticks(ticks=np.arange(0,ndays,30), labels=['Sep', 'Okt', 'Nov', 'Dec', 'Jan'])
+    plt.legend(); plt.grid(); plt.title("SIR-model and official data")
+    plt.xlabel("Time"); plt.ylabel("Ratio of Population")
+    plt.show()
+
+
+
 if __name__ == '__main__':
     # Start the simulation with initial values
     print("=== Start calculation ===")
@@ -117,11 +159,17 @@ if __name__ == '__main__':
 
     # Initial conditions
     N = 9e6                 # population size
+    officialInfections_t0 = 19043  # official number of recorded infected people at t0
     acc = 3                 # accuracy, number of decimal places in results
-    I_0 = 1500/N            # fraction of Infected (1353 reported cases)
-    R_0 = 0.58 + (1100/N)        # fraction of Vaccinated + 1100 Recovered
+
+    I_0 = officialInfections_t0/N   # fraction of Infected (1353 reported cases)
+
+    #R_0 = 0.58 + (1100/N)  # fraction of Vaccinated + 1100 Recovered
+    R_0 = 0.58 + 0.30       # 58% of fully Vaccinated + 30% protect themselves or can not be infected
+
     # 58% full vaccine protection. How many recovered? How old where the vaccines?
-    S_0 = 1 - I_0 - R_0     # fraction of Susceptible at
+    #S_0 = 1 - I_0 - R_0     # fraction of Susceptible at t0
+    S_0 = 1 - I_0 - R_0      # fraction of Susceptible at t0
 
     # k =  # contact rate
     # q =  # probability of an infection
@@ -136,23 +184,22 @@ if __name__ == '__main__':
 
     ##### Model B considers the decay in immunity as a function over time #####
     # damps the decay over time
-    damper = 0.05
+    damper = 0.011
 
     ### Constant rate of decay
     epsilonB_constant = lambda t: 1 / ndays * t * damper
 
     ### sigmoid function with a damper (sigmoid is similar to a jump function)
-    epsilonB_sigmoid = lambda t: (1 / ( 1 + np.exp(-t) )) * damper
+    #epsilonB_sigmoid = lambda t: (1 / ( 1 + np.exp(-t) )) * damper
 
     ### Half Normal Distributed values for decay rates
     epsilonB_halfGauss = lambda t: 1. / ( np.sqrt(1 ** np.pi) ) * np.exp( -1 * np.power(helperMap(t), 2.) ) * damper
 
     ######### CHOICE #########
-    epsilonB = epsilonB_halfGauss #epsilonB_constant
-   # helperPlotEpsilonB(epsilonB, xstart=0, xstop=150)
+    epsilonB = epsilonB_constant
 
-    # Like the COVID Prognose Konsortium a maximum of 80% infection protection is assumed
-    vacc_efficay = 0.8    #  0.8
+    # An infection protection of 80% is assumed (assumption copied from policy brief)
+    vacc_efficay = 0.8
 
 
     print(f"t_0 = {t_0}")
@@ -167,18 +214,19 @@ if __name__ == '__main__':
     print(f"epsilonA = {round(epsilonA, acc)} (vaccination decay rate)")
     print(f"damper = {damper} (for epsilon)")
     print(f"vaccination efficacy = {vacc_efficay*100}%")
-    #print(f"epsilonB = {round(np.mean(epsilonB(t)), acc)}")
+
 
     def helperPlotEpsilonB(eps, xstart, xstop, damper):
         g = np.linspace(xstart, xstop, 50)
         colors=['black', 'blue']
         labels=['Constant','Half Gaussian']
         for i in range(len(eps)):
-            plt.plot(g, (eps[i](g)) * 1 / damper, color=colors[i], label=labels[i])
+            #plt.plot(g, (eps[i](g)) * 1 / damper, color=colors[i], label=labels[i])
+            plt.plot(g, (eps[i](g)) * 1, color=colors[i], label=labels[i])
         plt.title("Plot epsilon function for Model B\n(rate of vaccination protection decay)")
         plt.xticks(ticks=np.arange(xstart, xstop, 30), labels=['Sep', 'Okt', 'Nov', 'Dec', 'Jan'])
-        plt.yticks(np.linspace(0, 1, 11));
-        plt.ylim(0, 1);
+        #plt.yticks(np.linspace(0, 1, 11));
+        #plt.ylim(0, 1);
         plt.xlim(xstart, xstop)
         plt.legend(loc='upper left')
         plt.grid(); plt.show()
@@ -206,15 +254,19 @@ if __name__ == '__main__':
     print("\n---------------------------------------------")
     print("Day 0: 1st September, 2021")
     print(f"Day {ndays}: 31st January, 2021")
-    print(f"Infected maximum in Model A: {round(max(solutionA[:, 1])*100, 1)}%")
-    print(f"Infected maximum in Model B: {round(max(solutionB[:, 1])*100, 1)}%")
+    pInfectedModelA = round(max(solutionA[:, 1])*100, 1)
+    print(f"Infected maximum in Model A: {pInfectedModelA}% / {int(N*pInfectedModelA/100)} infected")
+    pInfectedModelB = round(max(solutionB[:, 1])*100, 1)
+    print(f"Infected maximum in Model B: {pInfectedModelB}% / {int(N*pInfectedModelB/100)} infected")
+    print(f"Officially infected maximum: {0}% / {int(max(officialDataMinusOffset()))} infected")
     print("Plot is ready!")
 
-    # Plot results #
-    #plotSIR(solutionB)    # Plot only model B
-    helperPlotEpsilonB((epsilonB_constant, epsilonB_halfGauss), 0, ndays, damper)
-    subplotsSIR(solutionA, solutionB)    # plot both models
-
+    print(officialDataMinusOffset())
+##### Plot results ###################################################################
+    # plotSIR(solutionB)    # Plot only model B
+    #helperPlotEpsilonB((epsilonB_constant, epsilonB_halfGauss), 0, ndays, damper)
+    plotSirAndOfficialData(solutionB)
+    #subplotsSIR(solutionA, solutionB)    # plot both models
 
 
 
