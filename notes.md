@@ -14,11 +14,21 @@ IMPORTANT:
 - ``R0 = beta/gamma`` so infection over recovery rate
 
 ## Offene Fragen
-- Wie passe ich die Zahlen an?
+- _Wie passe ich die Zahlen an?_ **damper angepasst **
 - Skaliert auf 9Mio Einwohner in Ö sind das SEHR kleine Zahlen...?
-- Soll ich R(eff) die effektive Reproduktionsrate plotten? R(eff) wäre ein schönes Vergleichsmaß zu realen Daten!
-- Soll ich S_crit über die Zeit plotten? 
+- _Soll ich R(eff) die effektive Reproduktionsrate plotten? R(eff) wäre ein schönes Vergleichsmaß zu realen Daten!_ **NEIN, zu viel Aufwand**
+- _Soll ich S_crit über die Zeit plotten?_ **NEIN, zu viel Aufwand**
 
 ## TODO
-- Ich muss die realen Daten aus dieser Zeit finden! -> Plot
+- _Ich muss die realen Daten aus dieser Zeit finden! -> Plot_ **FERTIG**
+
+## Release Notes
+10.Juni 2022: Plakatives Beispiel mit Plots die zeigen, wie sich die Annahme auf ein solches System auswirtk   
+19.Juni 2022: Initial values und damper angepasst an echte Daten aus offiziellen Quellen.  
+- Resultat sind Plots ohne Recovered population ratio
+- eine Kurve, die sehr nahe an die echten Daten herankommt: 
+  - gleiche form 
+
+
+
 

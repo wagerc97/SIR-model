@@ -1,0 +1,29 @@
+
+-------------------- [PARAMETERS] ------------------------
+
+t_0 = 0
+timespan = 150 days / 5.0 months
+timestep dt = 1 day
+N = 9000000
+S_0 = 11.79%
+I_0 = 0.21%
+R_0 = 88.0%
+beta = 1.07 (infection rate)
+gamma = 0.1 (recovery rate)
+epsilonA = 0.0 (vaccination decay rate)
+damper = 0.01 (for epsilon)
+vaccination efficacy = 80.0%
+
+epsilonB is halfGauss
+
+---------------------- [RESULT] --------------------------
+
+Day 0: 1st September, 2021
+Day 150: 31st January, 2021
+
+Infected maximum in Model A: 1.1% / 99000 infected
+Infected maximum in Model B: 11.5% / 1035000 infected
+Officially infected maximum: 13.04% / 1173519 infected
+
+Percent error of Model A in maximum: 91.6%
+Percent error of Model B in maximum: 11.8%

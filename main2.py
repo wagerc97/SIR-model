@@ -174,7 +174,7 @@ def plotBothSirAndOfficialTotalInfections(solutionA, solutionB):
     plt.plot(t, solutionA[:, 0], label="A:Susceptible", color="orange", marker="|")
     plt.plot(t, solutionA[:, 1], label="A:Infected", color="red", marker="|")
     #plt.plot(t, solutionA[:, 2], label="A:Recovered", color="green", marker="|")
-
+    
     # MODEL B
     plt.plot(t, solutionB[:, 0], label="B:Susceptible", color="orange")
     plt.plot(t, solutionB[:, 1], label="B:Infected", color="red")
@@ -297,26 +297,26 @@ if __name__ == '__main__':
     print("\n---------------------- [RESULT] --------------------------\n")
     print("Day 0: 1st September, 2021")
     print(f"Day {ndays}: 31st January, 2021\n")
-
+    
     pMaxInfectedModelA = round(max(solutionA[:, 1])*100, 1)
     totalMaxInfectedModelA = int(N*pMaxInfectedModelA/100)
     print(f"Infected maximum in Model A: {pMaxInfectedModelA}% / {totalMaxInfectedModelA} infected")
-
+    
     pMaxInfectedModelB = round(max(solutionB[:, 1])*100, 1)
     totalMaxInfectedModelB = int(N*pMaxInfectedModelB/100)
     print(f"Infected maximum in Model B: {pMaxInfectedModelB}% / {totalMaxInfectedModelB} infected")
-
+    
     pMaxInfectedReality = round(max(officialTotalInfectionsMinusOffset())/N*100,2)
     totalMaxInfectedReality = int(max(officialTotalInfectionsMinusOffset()))
     print(f"Officially infected maximum: {pMaxInfectedReality}% / {totalMaxInfectedReality} infected\n")
-
+    
     percentErrorModelA = round((totalMaxInfectedReality - totalMaxInfectedModelA) / totalMaxInfectedReality * 100, 1)
     print(f"Percent error of Model A in maximum: {percentErrorModelA}%")
-
+    
     percentErrorModelB = round((totalMaxInfectedReality - totalMaxInfectedModelB) / totalMaxInfectedReality * 100, 1)
     print(f"Percent error of Model B in maximum: {percentErrorModelB}%")
 
-
+    
     print("\n[INFO]Plot is ready!")
 
     #print(officialDataMinusOffset())
