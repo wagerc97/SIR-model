@@ -4,7 +4,7 @@ Script for 250070 SE Seminar Applied PDE (2022S)
 Interpreter: Python 3.9
 Author: Clemens Wager, BSc
 Last revisited: June 19th, 2022
-----------------------------------------------------
+---------------------------------------------------------------------------------------------------------
 # This is a Python script to simulate and visualize two SIR models.
 # To model the infection dynamics of the Covid-19 pandemic in Austria.
 # To test the effect of decaying vaccination protection on pandemic dynamics.
@@ -21,7 +21,7 @@ def SIR_modelA(y, t, beta, gamma, epsilon, vacc_efficay):
     Computes the derivative of y at t. Callable by scipy.integrate.solve_ivp.
     :param y: result
     :param t: time
-    :param beta: infection rate
+    :param beta: transmission rate
     :param gamma: recovery rate
     :return:
     """
@@ -39,7 +39,7 @@ def SIR_modelB(y, t, beta, gamma, epsilon, vacc_efficay):
     Computes the derivative of y at t. Callable by scipy.integrate.solve_ivp.
     :param y: result
     :param t: time
-    :param beta: infection rate
+    :param beta: transmission rate
     :param gamma: recovery rate
     :return:
     """
@@ -120,7 +120,7 @@ def officialTotalInfectionsMinusOffset(filename="timeline-faelle-ems_period_simp
     df = pd.read_csv(".\\data\\"+filename, delimiter=';', decimal=',')
     df = df['total_infections']  # select column
     offset_t0 = df[0] - officialInfections_t0  # number of past infections
-    df = (df.to_numpy() - offset_t0)  # scale data: subtract past infections
+    df = (df.to_numpy() - offset_t0) * (1-gamma)  # scale data: subtract past infections
     return df
 
 
@@ -208,7 +208,7 @@ if __name__ == '__main__':
     I_0 = officialInfections_t0/N   # fraction of Infected (1353 reported cases)
 
     #R_0 = 0.58 + (1100/N)  # fraction of Vaccinated + 1100 Recovered
-    R_0 = 0.58 + 0.30       # 58% of fully Vaccinated + 30% protect themselves or can not be infected
+    R_0 = 0.58 + 0.30       # 58% of fully Vaccinated + 30% avoiding infections
 
     # 58% full vaccine protection. How many recovered?
     #S_0 = 1 - I_0 - R_0     # fraction of Susceptible at t0
@@ -217,8 +217,8 @@ if __name__ == '__main__':
     # k =  # contact rate
     # q =  # probability of an infection
     # D = 7 # duration of infectious state in days
-    # beta = k * q * D # infection rate
-    beta = 1.07      # infection rate
+    # beta = k * q * D # transmission rate
+    beta = 1.07      # transmission rate
 
     gamma = 1/10     # recovery rate  10 days -> 0.1
 
@@ -239,7 +239,7 @@ if __name__ == '__main__':
     epsilonB_halfGauss = lambda t: 1. / ( np.sqrt(1 ** np.pi) ) * np.exp( -1 * np.power(helperMap(t), 2.) ) * damper
 
     ######### CHOICE #########
-    epsilonB = epsilonB_constant
+    epsilonB = epsilonB_halfGauss
 
     # An infection protection of 80% is assumed (assumption copied from policy brief)
     vacc_efficay = 0.8
@@ -252,7 +252,7 @@ if __name__ == '__main__':
     print(f"S_0 = {round(S_0*100, 2)}%")
     print(f"I_0 = {round(I_0*100, 2)}%")
     print(f"R_0 = {round(R_0*100, 2)}%")
-    print(f"beta = {round(beta, acc)} (infection rate)")
+    print(f"beta = {round(beta, acc)} (transmission rate)")
     print(f"gamma = {round(gamma, acc)} (recovery rate)")
     print(f"epsilonA = {round(epsilonA, acc)} (vaccination decay rate)")
     print(f"damper = {damper} (for epsilon)")

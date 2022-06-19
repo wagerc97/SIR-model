@@ -4,7 +4,7 @@ Script for 250070 SE Seminar Applied PDE (2022S)
 Interpreter: Python 3.9
 Author: Clemens Wager, BSc
 Last revisited: June 19th, 2022
-----------------------------------------------------
+---------------------------------------------------------------------------------------------------------
 # This is a Python script to simulate and visualize two SIR models.
 # To model the infection dynamics of the Covid-19 pandemic in Austria.
 # To test the effect of decaying vaccination protection on pandemic dynamics.
@@ -21,7 +21,7 @@ def SIR_modelA(y, t, beta, gamma, epsilon, vacc_efficay):
     Computes the derivative of y at t. Callable by scipy.integrate.solve_ivp.
     :param y: result
     :param t: time
-    :param beta: infection rate
+    :param beta: transmission rate
     :param gamma: recovery rate
     :return:
     """
@@ -39,7 +39,7 @@ def SIR_modelB(y, t, beta, gamma, epsilon, vacc_efficay):
     Computes the derivative of y at t. Callable by scipy.integrate.solve_ivp.
     :param y: result
     :param t: time
-    :param beta: infection rate
+    :param beta: transmission rate
     :param gamma: recovery rate
     :return:
     """
@@ -217,8 +217,8 @@ if __name__ == '__main__':
     # k =  # contact rate
     # q =  # probability of an infection
     # D = 7 # duration of infectious state in days
-    # beta = k * q * D # infection rate
-    beta = 1.07      # infection rate
+    # beta = k * q * D # transmission rate
+    beta = 1.07      # transmission rate
 
     gamma = 1/10     # recovery rate  10 days -> 0.1
 
@@ -252,7 +252,7 @@ if __name__ == '__main__':
     print(f"S_0 = {round(S_0*100, 2)}%")
     print(f"I_0 = {round(I_0*100, 2)}%")
     print(f"R_0 = {round(R_0*100, 2)}%")
-    print(f"beta = {round(beta, acc)} (infection rate)")
+    print(f"beta = {round(beta, acc)} (transmission rate)")
     print(f"gamma = {round(gamma, acc)} (recovery rate)")
     print(f"epsilonA = {round(epsilonA, acc)} (vaccination decay rate)")
     print(f"damper = {damper} (for epsilon)")
