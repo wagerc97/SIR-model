@@ -3,7 +3,7 @@ main.py
 Script for 250070 SE Seminar Applied PDE (2022S)
 Interpreter: Python 3.9
 Author: Clemens Wager, BSc
-Last revisited: June 19th, 2022
+Last revisited: June 20th, 2022
 ---------------------------------------------------------------------------------------------------------
 # This is a Python script to simulate and visualize two SIR models.
 # To model the infection dynamics of the Covid-19 pandemic in Austria.
@@ -53,16 +53,7 @@ def SIR_modelB(y, t, beta, gamma, epsilon, vacc_efficay):
 
     return [dS_dt, dI_dt, dR_dt]
 
-def plotSIR(solution):
-    # Plot the 3 phase lines for S, I and R
-    plt.figure(figsize=[6, 4])
-    #plt.plot(t, solution[:, 0], label="Susceptible", color="orange")
-    plt.plot(t, solution[:, 1], label="Infected", color="red")
-    plt.plot(t, solution[:, 2], label="Recovered", color="green")
-    plt.xticks(ticks=np.arange(0,ndays,30), labels=['Sep', 'Okt', 'Nov', 'Dec', 'Jan'])
-    plt.legend(); plt.grid(); plt.title("SIR-model")
-    plt.xlabel("Time"); plt.ylabel("Ratio of Population")
-    plt.show()
+
 
 def subplotsSIR(solA, solB):
     # Plot the 3 phase lines for S, I and R
@@ -120,7 +111,7 @@ def officialTotalInfectionsMinusOffset(filename="timeline-faelle-ems_period_simp
     df = pd.read_csv(".\\data\\"+filename, delimiter=';', decimal=',')
     df = df['total_infections']  # select column
     offset_t0 = df[0] - officialInfections_t0  # number of past infections
-    df = (df.to_numpy() - offset_t0)  # scale data: subtract past infections
+    df = (df.to_numpy() - offset_t0) * (1-gamma)  # scale data: subtract past infections
     return df
 
 
@@ -137,35 +128,6 @@ def officialTotalInfectionsMinusOffsetScaled(filename="timeline-faelle-ems_perio
     df = (df.to_numpy() - offset_t0) / N * (1-gamma)
     return df
 
-    ''' LÖSCHEN
-    def officialDailyInfectionsScaled(filename="timeline-faelle-ems_period_simple.csv"):
-        """
-        Return a DataFrame with population ratios of total_infections minus past infection at time t_0 scaled by the population N
-        data source: https://www.data.gv.at/katalog/dataset/9723b0c6-48f4-418a-b301-e717b6d98c92
-        """
-        df = pd.read_csv(".\\data\\"+filename, delimiter=';', decimal=',')
-        # Get number of active cases (infected people) per day
-        df = df['daily_infections']  # select column
-        df = (df.to_numpy()) / N * gamma  # scale data: divide by population size N and reduce by recovery rate gamma
-        return df
-    
-    '''
-
-def plotSirAndOfficialTotalInfections(solution):
-    # Plot the 3 phase lines for S, I and R
-    plt.figure(figsize=[6, 4])
-    plt.plot(t, solution[:, 0], label="Susceptible", color="orange")
-    plt.plot(t, solution[:, 1], label="Infected", color="red")
-    #plt.plot(t, solution[:, 2], label="Recovered", color="green")
-
-    #plot official data
-    plt.plot(t, officialTotalInfectionsMinusOffsetScaled(), label="Official infections", color="blue")
-
-    plt.xticks(ticks=np.arange(0,ndays,30), labels=['Sep', 'Okt', 'Nov', 'Dec', 'Jan'])
-    plt.legend(); plt.grid(); plt.title("SIR-model and official data")
-    plt.xlabel("Time"); plt.ylabel("Ratio of Population")
-    plt.show()
-
 
 def plotBothSirAndOfficialTotalInfections(solutionA, solutionB):
     # Plot the 3 phase lines for S, I and R
@@ -174,7 +136,7 @@ def plotBothSirAndOfficialTotalInfections(solutionA, solutionB):
     plt.plot(t, solutionA[:, 0], label="A:Susceptible", color="orange", marker="|")
     plt.plot(t, solutionA[:, 1], label="A:Infected", color="red", marker="|")
     #plt.plot(t, solutionA[:, 2], label="A:Recovered", color="green", marker="|")
-    
+
     # MODEL B
     plt.plot(t, solutionB[:, 0], label="B:Susceptible", color="orange")
     plt.plot(t, solutionB[:, 1], label="B:Infected", color="red")
@@ -202,22 +164,14 @@ if __name__ == '__main__':
     # Initial conditions
     N = 9e6                         # population size
     officialInfections_t0 = 19043   # official number of recorded infected people at t0
-    dailyNewInfections_t0 = 2034    # official number of new infections on day 0 (t0)
     acc = 3                         # accuracy, number of decimal places in results
 
     I_0 = officialInfections_t0/N   # fraction of Infected (1353 reported cases)
 
-    #R_0 = 0.58 + (1100/N)  # fraction of Vaccinated + 1100 Recovered
-    R_0 = 0.58 + 0.30       # 58% of fully Vaccinated + 30% protect themselves or can not be infected
+    R_0 = 0.58 + 0.30        # 58% of fully Vaccinated + 30% avoiding infections
 
-    # 58% full vaccine protection. How many recovered?
-    #S_0 = 1 - I_0 - R_0     # fraction of Susceptible at t0
     S_0 = 1 - I_0 - R_0      # fraction of Susceptible at t0
 
-    # k =  # contact rate
-    # q =  # probability of an infection
-    # D = 7 # duration of infectious state in days
-    # beta = k * q * D # transmission rate
     beta = 1.07      # transmission rate
 
     gamma = 1/10     # recovery rate  10 days -> 0.1
@@ -244,6 +198,7 @@ if __name__ == '__main__':
     # An infection protection of 80% is assumed (assumption copied from policy brief)
     vacc_efficay = 0.8
 
+    # Print a report of the used parameters
     print("\n-------------------- [PARAMETERS] ------------------------\n")
     print(f"t_0 = {t_0}")
     print(f"timespan = {ndays} days / {ndays / 30} months")
@@ -259,13 +214,13 @@ if __name__ == '__main__':
     print(f"vaccination efficacy = {vacc_efficay*100}%")
 
 
-    def helperPlotEpsilonB(eps, xstart, xstop, damper):
+    def helperPlotBothEpsilonB(eps, xstart, xstop, damper):
         g = np.linspace(xstart, xstop, 50)
         colors=['black', 'blue']
         labels=['Constant','Half Gaussian']
         for i in range(len(eps)):
-            #plt.plot(g, (eps[i](g)) * 1 / damper, color=colors[i], label=labels[i])
-            plt.plot(g, (eps[i](g)) * 1, color=colors[i], label=labels[i])
+            plt.plot(g, (eps[i](g)) * 1 / damper, color=colors[i], label=labels[i])    # without damper
+            #plt.plot(g, (eps[i](g)) * 1, color=colors[i], label=labels[i])     # with damper
         plt.title("Plot epsilon function for Model B\n(rate of vaccination protection decay)")
         plt.xticks(ticks=np.arange(xstart, xstop, 30), labels=['Sep', 'Okt', 'Nov', 'Dec', 'Jan'])
         #plt.yticks(np.linspace(0, 1, 11));
@@ -293,42 +248,42 @@ if __name__ == '__main__':
     ).y.T)  # select transformed solution matrix
 
 
-    # Stdout results
+    # Print a report of the simulation
     print("\n---------------------- [RESULT] --------------------------\n")
     print("Day 0: 1st September, 2021")
     print(f"Day {ndays}: 31st January, 2021\n")
-    
+
     pMaxInfectedModelA = round(max(solutionA[:, 1])*100, 1)
     totalMaxInfectedModelA = int(N*pMaxInfectedModelA/100)
     print(f"Infected maximum in Model A: {pMaxInfectedModelA}% / {totalMaxInfectedModelA} infected")
-    
+
     pMaxInfectedModelB = round(max(solutionB[:, 1])*100, 1)
     totalMaxInfectedModelB = int(N*pMaxInfectedModelB/100)
     print(f"Infected maximum in Model B: {pMaxInfectedModelB}% / {totalMaxInfectedModelB} infected")
-    
+
     pMaxInfectedReality = round(max(officialTotalInfectionsMinusOffset())/N*100,2)
     totalMaxInfectedReality = int(max(officialTotalInfectionsMinusOffset()))
     print(f"Officially infected maximum: {pMaxInfectedReality}% / {totalMaxInfectedReality} infected\n")
-    
+
     percentErrorModelA = round((totalMaxInfectedReality - totalMaxInfectedModelA) / totalMaxInfectedReality * 100, 1)
     print(f"Percent error of Model A in maximum: {percentErrorModelA}%")
-    
+
     percentErrorModelB = round((totalMaxInfectedReality - totalMaxInfectedModelB) / totalMaxInfectedReality * 100, 1)
     print(f"Percent error of Model B in maximum: {percentErrorModelB}%")
 
-    
     print("\n[INFO]Plot is ready!")
 
-    #print(officialDataMinusOffset())
 
-    # Plot results ###################################################################
-    # plotSIR(solutionB)    # Plot only model B
-    #helperPlotEpsilonB((epsilonB_constant, epsilonB_halfGauss), 0, ndays, damper)
-    #plotSirAndOfficialTotalInfections(solutionB)
-    #subplotsSIR(solutionA, solutionB)    # plot both models
+    ################################## Plot results ####################################
+
+    # Plot both
+    helperPlotBothEpsilonB((epsilonB_constant, epsilonB_halfGauss), 0, ndays, damper)
+
+    # Plot both models with one selected epsilon
     plotBothSirAndOfficialTotalInfections(solutionA, solutionB)
 
-
+    # Plot both models with one sdlected epsilon
+    subplotsSIR(solutionA, solutionB)
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
