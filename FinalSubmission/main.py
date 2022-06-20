@@ -108,7 +108,7 @@ def officialTotalInfectionsMinusOffset(filename="timeline-faelle-ems_period_simp
     Return a DataFrame with numbers of total_infections minus past infection at time t_0
     data source: https://www.data.gv.at/katalog/dataset/9723b0c6-48f4-418a-b301-e717b6d98c92
     """
-    df = pd.read_csv(".\\data\\"+filename, delimiter=';', decimal=',')
+    df = pd.read_csv(".\\"+filename, delimiter=';', decimal=',')
     df = df['total_infections']  # select column
     offset_t0 = df[0] - officialInfections_t0  # number of past infections
     df = (df.to_numpy() - offset_t0) * (1-gamma)  # scale data: subtract past infections
@@ -120,7 +120,7 @@ def officialTotalInfectionsMinusOffsetScaled(filename="timeline-faelle-ems_perio
     Return a DataFrame with population ratios of total_infections minus past infection at time t_0 scaled by the population N
     data source: https://www.data.gv.at/katalog/dataset/9723b0c6-48f4-418a-b301-e717b6d98c92
     """
-    df = pd.read_csv(".\\data\\"+filename, delimiter=';', decimal=',')
+    df = pd.read_csv(".\\"+filename, delimiter=';', decimal=',')
     # Get number of active cases (infected people) per day
     df = df['total_infections']  # select column
     offset_t0 = df[1] - officialInfections_t0  # number of past infections
