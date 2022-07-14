@@ -3,8 +3,7 @@
 University of Vienna, S2022  
 250070 SE Seminar Applied PDE (2022S)  
 Supervisor: Univ.-Prof. Dr. Norbert Mauser  
-<br>
-Open the **[Report](./report_SIR-model_WAGER.pdf)** to see the whole study! 
+View the **[Report](./report_SIR-model_WAGER.pdf)** to read the whole study! 
 
 
 ## Question:
