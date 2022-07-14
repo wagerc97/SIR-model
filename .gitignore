@@ -1,7 +1,7 @@
 .idea
 *.iml
 /misc
-/dump
+*./dump
 /old
-#/versions
+/old_figs
 
