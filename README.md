@@ -1,9 +1,11 @@
 # The effect of time dependent vaccination protection (SIR-model)
----
+
 University of Vienna, S2022  
 250070 SE Seminar Applied PDE (2022S)  
-Supervisor: Univ.-Prof. Dr. Norbert Mauser
----
+Supervisor: Univ.-Prof. Dr. Norbert Mauser  
+<br>
+Open the **[Report](./report_SIR-model_WAGER.pdf)** to see the whole study! 
+
 
 ## Question:
 How will the results of two simple SIR models for Covid-19 infection dynamics differ if additionally time dependence of vaccination protection is considered?  
@@ -11,20 +13,20 @@ How will the results of two simple SIR models for Covid-19 infection dynamics di
 ## Hypothesis:
 The model considering the time dependent vaccination protection will be more accurate. <br>
 
----
+
 ### Basic model: SIR (a simple epidemics model)
 * _N_ is a homogenously mixed population with size _N_=1   
   _N = S + I + R_
 * Individuals only jump between the 3 compartments
 * RK4 solver used for ODEs is very stable and accurate
 
----
+
 ### The two models: 
 * Model A considers 5 months of constant vaccination protection / natural immunity.	
 * Model B considers the vaccination protection / natural immunity as a function of time.
 * A time frame of September 1st, 2021 until January 31st, 2021 is studied.
 
----
+
 ### Assumptions: 
 - The average convalescence period of a Covid-19 infection is 10 days
 - The maximum level of immunity _e_ = 80% on average
