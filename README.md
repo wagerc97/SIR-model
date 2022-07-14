@@ -35,5 +35,5 @@ by adding an estimated amount of 0.3
 
 #### Acknowledgement
 This is version 2.0 of the SIR-model and report.  
-I thank Prof. Norbert Mauser for the greate support.  
+I thank Professor Norbert Mauser for the greate support.  
 The final version incorporates recommendations/critique from Professor Dieter Suess. I thank you for the input.
