@@ -34,6 +34,4 @@ The model considering the time dependent vaccination protection will be more acc
 by adding an estimated amount of 0.3
 
 #### Acknowledgement
-This is version 2.0 of the SIR-model and report.  
-I thank Professor Norbert Mauser for the support and supervising this study.  
-The final version incorporates also recommendations from Professor Dieter Suess. Thank you for the input.
+This project was supervised by Professor Norbert Mauser and reviewed by Professor Dieter Suess.
