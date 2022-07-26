@@ -3,7 +3,8 @@
 University of Vienna, S2022  
 250070 SE Seminar Applied PDE (2022S)  
 Supervisor: Univ.-Prof. Dr. Norbert Mauser  
-View the **[Report](./report_SIR-model_WAGER.pdf)** to read the whole study! 
+Read the **[Report](./report_SIR-model-final_WAGER.pdf)** to learn about the whole study or
+look up the **[Presentation slides](./SIR-model_slides-final_WAGER_2022.pdf)** for extra content! 
 
 
 ### Question:
@@ -35,3 +36,7 @@ by adding an estimated amount of 0.3
 
 #### Acknowledgement
 This project was supervised by Professor Norbert Mauser and reviewed by Professor Dieter Suess.
+
+<br>
+
+_"A good model is as simple as possible and as complex as necessary."_
